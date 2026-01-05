@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL DE SÉCURITÉ - SYSTÈME ALPHA</title>
+    <meta name="theme-color" content="#05070a">
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        :root {
+            --primary: #00f2ff; /* Cyan */
+            --success: #00ff88; /* Vert Néon */
+            --danger: #ff3e3e;  /* Rouge Vif */
+            --warning: #ffcc00; /* Ambre */
+            --bg: #05070a;
+            --panel: #0d1117;
+            --border: #1f2937;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #main-container {
+            background-color: var(--panel);
+            border: 2px solid var(--border);
+            width: 580px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+            transition: all 0.1s;
+        }
+
+        /* Effets de corruption */
+        .corrupt-1 { filter: contrast(1.2) hue-rotate(20deg); transform: skewX(1deg); }
+        .corrupt-2 { filter: contrast(1.8) blur(0.6px); transform: skew(-3deg); border-color: var(--danger); }
+        .corrupt-3 { filter: invert(0.9) sepia(1); animation: shake 0.15s infinite; }
+
+        @keyframes shake {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -1px); }
+            100% { transform: translate(1px, 2px); }
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--warning);
+        }
+
+        .identity-card {
+            border: 1px solid var(--border);
+            padding: 20px;
+            background: #010409;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .label { color: #4b5563; font-size: 0.75rem; text-transform: uppercase; font-weight: bold; }
+        .data { display: block; margin-bottom: 15px; font-size: 1.1rem; color: #fff; padding-left: 10px; border-left: 3px solid var(--border); }
+
+        #check-icon {
+            display: none;
+            position: absolute;
+            right: 20px;
+            top: 65px;
+            width: 25px;
+            height: 25px;
+            border: 3px solid var(--success);
+            border-radius: 50%;
+        }
+        #check-icon::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 3px;
+            width: 6px;
+            height: 12px;
+            border: solid var(--success);
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+
+        .terminal-output {
+            background: #000;
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            height: 50px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        button {
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+        .btn-call { border-color: var(--warning); color: var(--warning); }
+        .btn-no { border-color: var(--danger); color: var(--danger); }
+        .btn-ok { border-color: var(--success); color: var(--success); }
+
+        .hidden { display: none !important; }
+
+        #support-data {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-container">
+    <div class="header">INTERFACE_DE_FILTRAGE</div>
+
+    <div id="start-screen">
+        <p style="color: var(--success)">STATUT : SYSTEME EN LIGNE</p>
+        <p>DATE : 05 JANVIER 2026</p>
+        <p style="color: var(--warning)">ALERTE : LA CORRUPTION PEUT EFFACER VOS COMMANDES DE CONTROLE.</p>
+        <button onclick="startGame()" style="width:100%">DÉVERROUILLER LA SESSION</button>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div class="stats">
+            <div>POINTS_ACCES: <span id="score" style="color:#fff">0</span></div>
+            <div>INTÉGRITÉ: <span id="lives" style="color:var(--danger)">3</span></div>
+        </div>
+
+        <div class="identity-card">
+            <div id="check-icon"></div>
+            <span class="label">Utilisateur</span>
+            <span id="name-field" class="data">---</span>
+            <span class="label">ID_Badge</span>
+            <span id="id-field" class="data" style="color: var(--warning)">---</span>
+            <div id="support-data" class="hidden">
+                <span class="label" style="color: var(--primary)">Registre_Central</span>
+                <span id="date-field" class="data" style="font-size: 0.9rem; border-color: var(--primary)"></span>
+            </div>
+        </div>
+
+        <div class="terminal-output" id="logs">> PRÊT POUR ANALYSE...</div>
+
+        <div class="controls">
+            <button id="btn-scan" onclick="actionScan()">SCAN_BIO</button>
+            <button id="btn-call" class="btn-call" onclick="actionCall()">CENTRAL</button>
+            <button id="btn-no" class="btn-no" onclick="makeDecision(false)">BLOQUER</button>
+            <button id="btn-ok" class="btn-ok" onclick="makeDecision(true)">AUTORISER</button>
+        </div>
+    </div>
+
+    <div id="end-screen" class="hidden">
+        <h2 style="color:var(--danger)">ERREUR FATALE</h2>
+        <p id="end-reason" style="color: var(--warning)">CORRUPTION CRITIQUE DU NOYAU</p>
+        <p>FLUX TRAITÉS : <span id="final-score">0</span></p>
+        <button onclick="location.reload()" style="width:100%">REDÉMARRER LE SYSTÈME</button>
+    </div>
+</div>
+
+<script>
+    // Enregistrement du Service Worker pour l'app
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                console.log('App prête pour usage hors-ligne.');
+            }).catch(err => console.log('Erreur PWA:', err));
+        });
+    }
+
+    let score = 0;
+    let lives = 3;
+    let corruption = 0;
+    let current = null;
+
+    function startGame() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        generateNewSubject();
+    }
+
+    function generateNewSubject() {
+        const names = ["AXEL-7", "K. REEVE", "S. JOB", "M. KUSANAGI", "D. BOHR"];
+        const isBad = Math.random() > 0.5;
+        let type = "VALID";
+
+        let creation = new Date(2025, 4, 15);
+        let expiry = new Date(2026, 10, 20);
+
+        if (isBad) {
+            const rnd = Math.random();
+            if (rnd < 0.4) {
+                expiry = new Date(2025, 11, 25);
+                type = "EXPIRED";
+            } else if (rnd < 0.7) {
+                creation = new Date(2027, 2, 1);
+                type = "DATE_ERROR";
+            } else {
+                type = "FAKE_ID";
+            }
+        }
+
+        current = {
+            name: names[Math.floor(Math.random() * names.length)],
+            id: type === "FAKE_ID" ? "ID-INVALID" : "ID-" + Math.floor(1000 + Math.random() * 8000),
+            created: creation.toLocaleDateString('fr-FR'),
+            expires: expiry.toLocaleDateString('fr-FR'),
+            valid: !isBad,
+            type: type
+        };
+
+        document.getElementById('name-field').innerText = current.name;
+        document.getElementById('id-field').innerText = current.id;
+        document.getElementById('id-field').style.color = "var(--warning)";
+        document.getElementById('support-data').classList.add('hidden');
+        document.getElementById('check-icon').style.display = "none";
+        document.getElementById('btn-scan').disabled = false;
+        document.getElementById('btn-call').disabled = false;
+        log("> NOUVELLE REQUÊTE D'ENTRÉE...");
+    }
+
+    function actionScan() {
+        document.getElementById('btn-scan').disabled = true;
+        if (Math.random() < 0.6) {
+            log("> SCAN : [ERREUR_LIAISON] ANALYSE MANUELLE REQUISE.");
+        } else {
+            if (current.valid) {
+                log("> SCAN : [SUCCÈS] SIGNATURE AUTHENTIQUE.");
+                document.getElementById('check-icon').style.display = "block";
+                document.getElementById('id-field').style.color = "var(--success)";
+            } else {
+                log("> SCAN : [ALERTE] CODE D'IDENTIFICATION CORROMPU.");
+                document.getElementById('id-field').style.color = "var(--danger)";
+            }
+        }
+    }
+
+    function actionCall() {
+        document.getElementById('btn-call').disabled = true;
+        log("> LIAISON CENTRAL... RÉCUPÉRATION DES DONNÉES.");
+        setTimeout(() => {
+            document.getElementById('support-data').classList.remove('hidden');
+            document.getElementById('date-field').innerHTML = `CRÉATION : ${current.created}<br>EXPIRATION : ${current.expires}`;
+        }, 600);
+    }
+
+    function makeDecision(auth) {
+        const isRight = (auth === current.valid);
+        if (isRight) {
+            score += 10;
+            log("> SYSTÈME : ACCÈS TRAITÉ AVEC SUCCÈS.");
+        } else {
+            lives--;
+            corruption++;
+            applyVisualCorruption();
+            log("> ALERTE : ERREUR DE FILTRAGE DÉTECTÉE.");
+        }
+        document.getElementById('score').innerText = score;
+        document.getElementById('lives').innerText = lives;
+        if (lives <= 0) {
+            endGame("INTÉGRITÉ À 0% : SYSTÈME HS");
+        } else {
+            setTimeout(generateNewSubject, 1200);
+        }
+    }
+
+    function applyVisualCorruption() {
+        const container = document.getElementById('main-container');
+        container.className = ""; 
+        if (corruption >= 1) container.classList.add('corrupt-1');
+        if (corruption >= 2) container.classList.add('corrupt-2');
+        if (corruption >= 3) container.classList.add('corrupt-3');
+
+        const btns = ['btn-ok', 'btn-no', 'btn-scan', 'btn-call'];
+        const targetId = btns[Math.floor(Math.random() * btns.length)];
+        const targetBtn = document.getElementById(targetId);
+
+        if (Math.random() < 0.5) {
+            targetBtn.classList.add('hidden');
+            log(`> CRITIQUE : MODULE ${targetId.replace('btn-', '').toUpperCase()} DÉCONNECTÉ.`);
+            if (targetId === 'btn-ok' || targetId === 'btn-no') {
+                setTimeout(() => endGame("COMMANDE VITALE PERDUE"), 800);
+            }
+        }
+    }
+
+    function log(msg) { document.getElementById('logs').innerText = msg; }
+
+    function endGame(reason) {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('end-reason').innerText = reason;
+        document.getElementById('final-score').innerText = score;
+    }
+</script>
+</body>
+</html>
