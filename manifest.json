@@ -1,0 +1,15 @@
+{
+  "name": "Terminal Sécurité Alpha",
+  "short_name": "SecuAlpha",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#05070a",
+  "theme_color": "#00f2ff",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
